@@ -1,38 +1,14 @@
-# Built output
-*.apk
-*.aar
-*.ap_
-*.aab
-*.dex
-*.class
-bin/
-gen/
-out/
 build/
-release/
-
-# Gradle
 .gradle/
-local.properties
 .kotlin/
-
-# Secrets and signing
-*.jks
-*.keystore
-agconnect-services.json
-google-services.json
-
-# IDE
 .idea/
 *.iml
-*.ipr
-*.iws
 .DS_Store
 captures/
-.externalNativeBuild/
-.cxx/
+*.apk
+*.aab
 
-# Logs
-*.log
+local.properties
 keystore.properties
 *.jks
+*.keystore

@@ -1,50 +1,9 @@
-# Copy this file to local.properties and fill in your own values.
-# local.properties is in .gitignore, so nothing here reaches the repository.
+sdk.dir=/Users/you/Library/Android/sdk
 
-# Android SDK location. Android Studio writes this line for you.
-#sdk.dir=/Users/you/Library/Android/sdk
-
-# Wear Engine app ID from AppGallery Connect.
 wearengine.appId=
-# Peer (watch app) credentials. Lite watches (GT/Fit series) and smart watches (Watch 3/4/5)
-# run different watch apps, so each has its own package name and fingerprint. The switch in
-# the top right corner of the Wear Engine tab picks which pair is used.
+
 wearengine.lite.peerPackage=
 wearengine.lite.peerFingerprint=
+
 wearengine.smart.peerPackage=
 wearengine.smart.peerFingerprint=
-
-# Huawei Health Kit Cloud
-# App ID from AppGallery Connect. Used as client_id and as the SDK clientId.
-healthkit.clientId=
-# App secret. Only Method 1 needs it. A production app keeps it on its own backend.
-healthkit.clientSecret=
-# This app's own deep link, registered in AppGallery Connect as the Scheme URL for
-# Method 2. The manifest builds its intent filter from this same value.
-healthkit.deepLink=wearhealthkit://oauth/callback
-# Method 1 only: the redirect URI registered in AppGallery Connect for OAuth 2.0. It must
-# match that registration exactly. Leave empty to reuse healthkit.deepLink. When it is not
-# this app's own scheme (an http/https URL, for example), the authorization page opens in
-# an in-app WebView that catches the redirect instead of a Custom Tab.
-healthkit.redirectUri=
-# Method 2 only: the App ID of an Android app in AppGallery Connect. The login-free SDK
-# checks the calling app's package name and signature, which a server-to-server app has
-# none of. Leave empty to reuse healthkit.clientId.
-healthkit.loginFreeAppId=
-# Health Kit Cloud is split into regional sites and a token only works on the site its
-# HUAWEI ID belongs to; another site answers 403 with code 121001, "request forbidden due
-# to site cross". Leave empty to let the app find the site and remember it.
-healthkit.apiHost=
-# Scheme Secret that AppGallery Connect gives you for the Scheme URL. Method 2 only.
-healthkit.schemeSecret=
-# Method the app starts with: WEB_OAUTH or LOGIN_FREE_SDK. It can also be changed in the app.
-healthkit.authMethod=WEB_OAUTH
-# How far back the app may read. Health Kit Cloud serves only data created after the user
-# authorized the app; anything older needs a historical data scope, which has to be applied
-# for on the Health Service Kit card first. NONE, WEEK, MONTH or YEAR. Asking for a scope
-# that is not approved for your App ID makes the authorization itself fail, so leave this
-# at NONE until the scope is approved.
-healthkit.historyWindow=NONE
-
-# Backend that receives Health Kit subscription notifications and sends the push.
-backend.baseUrl=
