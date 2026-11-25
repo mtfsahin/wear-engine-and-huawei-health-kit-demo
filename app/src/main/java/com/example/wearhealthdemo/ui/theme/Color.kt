@@ -2,10 +2,12 @@ package com.example.wearhealthdemo.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
-
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+// Same palette as the iOS and Flutter login-free samples
+val Surface0 = Color(0xFF111111)
+val Surface1 = Color(0xFF1C1D1F)
+val Ink = Color(0xFFF2F2F2)
+val Ink2 = Color(0xFFA6A6A6)
+val Line = Color(0xFF333333)
+val LineStrong = Color(0xFF4A4C50)
+val Brand = Color(0xFFC7000B)
+val ErrorRed = Color(0xFFFF6B6B)

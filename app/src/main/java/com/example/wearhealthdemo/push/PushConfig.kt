@@ -1,6 +1,7 @@
 package com.example.wearhealthdemo.push
 
 import com.example.wearhealthdemo.BuildConfig
+import com.example.wearhealthdemo.healthkit.HealthKitConfig
 
 enum class PushProvider(val wireName: String) {
     FCM("fcm"),
@@ -9,7 +10,7 @@ enum class PushProvider(val wireName: String) {
 
 object PushConfig {
     val backendBaseUrl: String = BuildConfig.BACKEND_BASE_URL.trimEnd('/')
-    val hmsAppId: String = BuildConfig.WEAR_ENGINE_APP_ID
+    val hmsAppId: String = BuildConfig.WEAR_ENGINE_APP_ID.ifBlank { HealthKitConfig.loginFreeAppId }
 
     val isConfigured: Boolean get() = backendBaseUrl.isNotBlank()
 

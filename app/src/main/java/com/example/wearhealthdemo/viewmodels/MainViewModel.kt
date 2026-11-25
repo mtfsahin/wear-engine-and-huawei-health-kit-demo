@@ -53,6 +53,7 @@ class MainViewModel(
             it.copy(
                 isAuthorized = healthKitClient.isAuthorized,
                 authMethod = healthKitClient.authMethod,
+                tokenItems = healthKitClient.tokenItems(),
             )
         }
     }
@@ -269,7 +270,12 @@ class MainViewModel(
                     updateHealthKit {
                         it.copy(isAuthorizing = false, isAuthorized = true, errorMessage = null)
                     }
-                    updateHealthKit { it.copy(accountOpenId = healthKitClient.accountOpenId) }
+                    updateHealthKit {
+                        it.copy(
+                            accountOpenId = healthKitClient.accountOpenId,
+                            tokenItems = healthKitClient.tokenItems(),
+                        )
+                    }
                     addLogMessage("Huawei Health account connected")
                     enableWorkoutPush()
                     fetchRecentWorkouts()
@@ -320,6 +326,7 @@ class MainViewModel(
                             errorMessage = fetch.notice,
                             needsPrivacy = fetch.needsPrivacy,
                             accountOpenId = healthKitClient.accountOpenId,
+                            tokenItems = healthKitClient.tokenItems(),
                         )
                     }
                     addLogMessage(
@@ -328,6 +335,30 @@ class MainViewModel(
                 }
                 .onFailure { error ->
                     setHealthKitError("Fetch failed: ${error.message}")
+                }
+        }
+    }
+
+    fun refreshToken() {
+        updateHealthKit { it.copy(isRefreshingToken = true, errorMessage = null) }
+
+        viewModelScope.launch {
+            healthKitClient.refreshAccessToken()
+                .onSuccess {
+                    updateHealthKit {
+                        it.copy(isRefreshingToken = false, tokenItems = healthKitClient.tokenItems())
+                    }
+                    addLogMessage("Access token refreshed")
+                }
+                .onFailure { error ->
+                    updateHealthKit {
+                        it.copy(
+                            isRefreshingToken = false,
+                            isAuthorized = healthKitClient.isAuthorized,
+                            tokenItems = healthKitClient.tokenItems(),
+                        )
+                    }
+                    setHealthKitError("Token refresh failed: ${error.message}")
                 }
         }
     }
@@ -378,7 +409,12 @@ class MainViewModel(
 
     private fun setHealthKitError(message: String) {
         updateHealthKit {
-            it.copy(isAuthorizing = false, isLoadingWorkouts = false, errorMessage = message)
+            it.copy(
+                isAuthorizing = false,
+                isLoadingWorkouts = false,
+                isRefreshingToken = false,
+                errorMessage = message,
+            )
         }
         addLogMessage(message)
     }

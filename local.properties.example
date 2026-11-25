@@ -4,7 +4,12 @@
 # Android SDK location. Android Studio writes this line for you.
 #sdk.dir=/Users/you/Library/Android/sdk
 
-# Wear Engine app ID from AppGallery Connect.
+# Package name registered in AppGallery Connect. The login-free SDK checks it together with
+# the signing certificate's SHA-256. Leave empty for com.example.wearhealthdemo.
+app.applicationId=
+
+# Wear Engine app ID from AppGallery Connect: the App ID of this Android app. It is also
+# written into the manifest as com.huawei.hms.client.appid.
 wearengine.appId=
 # Peer (watch app) credentials. Lite watches (GT/Fit series) and smart watches (Watch 3/4/5)
 # run different watch apps, so each has its own package name and fingerprint. The switch in
@@ -33,12 +38,13 @@ healthkit.redirectUri=
 healthkit.loginFreeAppId=
 # Health Kit Cloud is split into regional sites and a token only works on the site its
 # HUAWEI ID belongs to; another site answers 403 with code 121001, "request forbidden due
-# to site cross". Leave empty to let the app find the site and remember it.
+# to site cross" with the right site in the Location header, which the app follows.
+# Leave empty to start on health-api.cloud.huawei.com.
 healthkit.apiHost=
 # Scheme Secret that AppGallery Connect gives you for the Scheme URL. Method 2 only.
 healthkit.schemeSecret=
-# Method the app starts with: WEB_OAUTH or LOGIN_FREE_SDK. It can also be changed in the app.
-healthkit.authMethod=WEB_OAUTH
+# The screen only offers LOGIN_FREE_SDK. The WEB_OAUTH code path is still in the project.
+healthkit.authMethod=LOGIN_FREE_SDK
 # How far back the app may read. Health Kit Cloud serves only data created after the user
 # authorized the app; anything older needs a historical data scope, which has to be applied
 # for on the Health Service Kit card first. NONE, WEEK, MONTH or YEAR. Asking for a scope

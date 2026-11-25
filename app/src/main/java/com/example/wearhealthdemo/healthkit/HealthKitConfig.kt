@@ -56,14 +56,6 @@ object HealthKitConfig {
     val defaultApiHost: String =
         BuildConfig.HEALTH_KIT_API_HOST.takeIf { it.isNotBlank() } ?: "health-api.cloud.huawei.com"
 
-    val FALLBACK_API_HOSTS: List<String> = listOf(
-        "health-api.cloud.huawei.com",
-        "health-api.cloud.huawei.eu",
-        "health-api.cloud.huawei.asia",
-        "health-api.cloud.huawei.ru",
-        "health-api.cloud.huawei.com.cn",
-    )
-
     const val SITE_CROSS_ERROR_CODE = 121001
 
     const val REFRESH_TOKEN_RESULT_CODE = 1203

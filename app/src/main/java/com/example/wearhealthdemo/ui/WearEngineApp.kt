@@ -36,7 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.wearhealthdemo.managers.WatchType
-import com.example.wearhealthdemo.ui.screens.HealthKitScreen
+import com.example.wearhealthdemo.ui.screens.LoginFreeScreen
 import com.example.wearhealthdemo.ui.screens.WearEngineScreen
 import com.example.wearhealthdemo.viewmodels.MainViewModel
 
@@ -50,7 +50,8 @@ fun WearEngineApp(
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            // The login-free screen draws its own header
+            if (selectedTab == AppTab.WEAR_ENGINE) TopAppBar(
                 title = {
                     Row(
                         modifier = Modifier
@@ -97,7 +98,7 @@ fun WearEngineApp(
     ) { contentPadding ->
         when (selectedTab) {
             AppTab.WEAR_ENGINE -> WearEngineScreen(viewModel, contentPadding)
-            AppTab.HEALTH_KIT -> HealthKitScreen(viewModel, contentPadding)
+            AppTab.HEALTH_KIT -> LoginFreeScreen(viewModel, contentPadding)
         }
     }
 }

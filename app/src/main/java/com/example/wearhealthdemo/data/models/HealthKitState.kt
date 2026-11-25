@@ -15,6 +15,8 @@ data class HealthKitState(
     val needsPrivacy: Boolean = false,
     val accountOpenId: String? = null,
     val lookbackDays: Long = HealthKitConfig.DEFAULT_LOOKBACK_DAYS,
+    val isRefreshingToken: Boolean = false,
+    val tokenItems: List<Pair<String, String>> = emptyList(),
 ) {
     val rangeStartMillis: Long
         get() = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(lookbackDays)

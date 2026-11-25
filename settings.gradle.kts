@@ -20,6 +20,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "WearEngineHealthKitDemo"
+rootProject.name = "HealthKitLoginFreeDemo"
 include(":app")
  

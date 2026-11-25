@@ -1,23 +1,27 @@
 import { createHmac } from 'node:crypto'
 import { config } from './config.js'
 
-const FALLBACK_HOSTS = [
-  'health-api.cloud.huawei.com',
-  'health-api.cloud.huawei.eu',
-  'health-api.cloud.huawei.asia',
-  'health-api.cloud.huawei.ru',
-  'health-api.cloud.huawei.com.cn',
-]
-
 const [type, subType] = config.healthKit.eventType.split('$')
 
-let site = config.healthKit.apiHost
+const site = config.healthKit.apiHost
 
-const isSiteCross = (status, body) => status === 403 && body.includes('site cross')
+const isSiteCross = (status, body) =>
+  status === 403 && (body.includes('121001') || body.includes('site cross'))
+
+// The Location header carries the user's site, e.g. https://health-api.cloud.huawei.eu/...
+export const siteFromLocation = (location) => {
+  if (!location) return null
+  try {
+    return new URL(location.includes('://') ? location : `https://${location}`).host || null
+  } catch {
+    return null
+  }
+}
 
 const callSite = async (host, path, accessToken, init) => {
   const response = await fetch(`https://${host}${path}`, {
     ...init,
+    redirect: 'manual',
     headers: {
       'Content-Type': 'application/json; charset=UTF-8',
       Authorization: `Bearer ${accessToken}`,
@@ -29,32 +33,16 @@ const callSite = async (host, path, accessToken, init) => {
   return { response, body: await response.text() }
 }
 
-const tryCallSite = async (host, path, accessToken, init) => {
-  try {
-    return await callSite(host, path, accessToken, init)
-  } catch (error) {
-    console.warn(`Health Kit site ${host} did not answer: ${error.cause?.code ?? error.message}`)
-    return null
-  }
-}
-
+// A token only works on its user's site, so the site is decided per call, not cached
 const call = async (path, accessToken, init) => {
-  const first = await tryCallSite(site, path, accessToken, init)
-  if (first && !isSiteCross(first.response.status, first.body)) return first
+  const first = await callSite(site, path, accessToken, init)
+  if (!isSiteCross(first.response.status, first.body)) return first
 
-  for (const host of FALLBACK_HOSTS) {
-    if (host === site) continue
+  const redirect = siteFromLocation(first.response.headers.get('location'))
+  if (!redirect || redirect === site) return first
 
-    const retry = await tryCallSite(host, path, accessToken, init)
-    if (!retry || isSiteCross(retry.response.status, retry.body)) continue
-
-    console.log(`Health Kit site moved from ${site} to ${host}`)
-    site = host
-    return retry
-  }
-
-  if (first) return first
-  throw new Error('No Health Kit site answered')
+  console.log(`HealthKit siteCross | from: ${site} | to: ${redirect}`)
+  return callSite(redirect, path, accessToken, init)
 }
 
 export const subscribe = async (accessToken) => {

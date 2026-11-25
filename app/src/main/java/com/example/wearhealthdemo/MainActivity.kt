@@ -1,8 +1,10 @@
 package com.example.wearhealthdemo
 
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.ViewModelProvider
@@ -13,7 +15,7 @@ import com.example.wearhealthdemo.managers.P2pManager
 import com.example.wearhealthdemo.managers.WatchTypeStore
 import com.example.wearhealthdemo.push.WorkoutSubscriptions
 import com.example.wearhealthdemo.ui.WearEngineApp
-import com.example.wearhealthdemo.ui.theme.WearEngineAndroidLiteFileMessageSenderTheme
+import com.example.wearhealthdemo.ui.theme.LoginFreeTheme
 import com.example.wearhealthdemo.viewmodels.MainViewModel
 import com.example.wearhealthdemo.viewmodels.MainViewModelFactory
 
@@ -24,7 +26,11 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        // The screens are always dark, so keep light bar icons
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
+        )
 
         p2pManager = P2pManager(this)
 
@@ -41,7 +47,7 @@ class MainActivity : ComponentActivity() {
         )[MainViewModel::class.java]
 
         setContent {
-            WearEngineAndroidLiteFileMessageSenderTheme {
+            LoginFreeTheme {
                 WearEngineApp(viewModel = viewModel)
             }
         }

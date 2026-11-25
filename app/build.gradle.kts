@@ -51,8 +51,8 @@ localProperties.keys
 
 
 /**
- * Wear Engine checks the APK signature against the fingerprint registered in AppGallery
- * Connect, so the debug keystore is rejected. Put the registered keystore's details in
+ * Wear Engine and the login-free SDK check the APK signature against the SHA-256 fingerprint
+ * registered in AppGallery Connect. Put the registered keystore's details in
  * keystore.properties (git ignores it) and both build types are signed with it.
  */
 val keystoreProperties = Properties().apply {
@@ -77,7 +77,9 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.wearhealthdemo"
+        // Must match the package registered in AppGallery Connect
+        applicationId = secret("app.applicationId", "APP_APPLICATION_ID")
+            .ifBlank { "com.example.wearhealthdemo" }
         minSdk = 23
         targetSdk = 35
         versionCode = 1
@@ -122,7 +124,7 @@ android {
         buildConfigField(
             "String",
             "HEALTH_KIT_AUTH_METHOD",
-            "\"${secret("healthkit.authMethod", "HEALTH_KIT_AUTH_METHOD", "WEB_OAUTH")}\"",
+            "\"${secret("healthkit.authMethod", "HEALTH_KIT_AUTH_METHOD", "LOGIN_FREE_SDK")}\"",
         )
 
         buildConfigField(
@@ -160,13 +162,15 @@ android {
 
         manifestPlaceholders["healthKitScheme"] = deepLinkUri.scheme ?: "wearhealthkit"
         manifestPlaceholders["healthKitHost"] = deepLinkUri.host ?: "oauth"
-        manifestPlaceholders["wearEngineAppId"] =
-            secret("wearengine.appId", "WEAR_ENGINE_APP_ID", "your_wearengine_app_id")
+        // HMS app ID of this Android app, for Wear Engine and Push Kit
+        manifestPlaceholders["hmsAppId"] = secret("wearengine.appId", "WEAR_ENGINE_APP_ID")
+            .ifBlank { secret("healthkit.loginFreeAppId", "HEALTH_KIT_LOGIN_FREE_APP_ID") }
+            .ifBlank { secret("healthkit.clientId", "HEALTH_KIT_CLIENT_ID") }
     }
 
     signingConfigs {
         if (releaseSigning != null) {
-            create("wearEngine") {
+            create("registered") {
                 storeFile = releaseSigning
                 storePassword = keystoreProperties.getProperty("storePassword")
                 keyAlias = keystoreProperties.getProperty("keyAlias")
@@ -176,12 +180,12 @@ android {
     }
 
     buildTypes {
-        val wearEngine = signingConfigs.findByName("wearEngine")
+        val registered = signingConfigs.findByName("registered")
         getByName("debug") {
-            if (wearEngine != null) signingConfig = wearEngine
+            if (registered != null) signingConfig = registered
         }
         release {
-            if (wearEngine != null) signingConfig = wearEngine
+            if (registered != null) signingConfig = registered
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -197,6 +201,11 @@ android {
 
     kotlinOptions {
         jvmTarget = "11"
+    }
+
+    // android.util.Log returns defaults in unit tests
+    testOptions {
+        unitTests.isReturnDefaultValues = true
     }
 
     buildFeatures {
@@ -222,4 +231,7 @@ dependencies {
     implementation(libs.huawei.hms.push)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
 }

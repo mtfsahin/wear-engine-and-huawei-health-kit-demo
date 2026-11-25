@@ -1,20 +1,31 @@
 > **Note:** To access all shared projects, get information about environment setup, and view other guides, please visit [Explore-In-HMOS-Wearable Index](https://github.com/Explore-In-HMOS-Wearable/hmos-index).
 
-# Wear Engine and Huawei Health Kit demo
+# Wear Engine and Huawei Health Kit login-free demo
 
 An Android app, with a small Node.js backend, that shows the two ways a phone app works with
 a Huawei watch:
 
 - **Wear Engine**: the phone app talks to its own app on the watch. It finds the watch,
   checks the watch app with ping, and sends and receives P2P messages.
-- **Huawei Health Kit Cloud**: the phone app reads the user's workouts from the Huawei
-  cloud, after the user grants access, and gets a push notification when a new workout
-  arrives.
+- **Huawei Health Kit Cloud**: the phone app gets the user's authorization with the
+  **login-free SDK**, without a HUAWEI ID sign-in screen, reads the user's workouts from the
+  Huawei cloud and gets a push notification when a new workout arrives. This tab follows the
+  iOS and Flutter login-free samples.
 
 ```
 Wear Engine     phone app  <->  Huawei Health app  <->  watch app        (Bluetooth)
 Health Kit      watch  ->  Huawei Health app  ->  Huawei cloud  ->  phone app / backend  (REST)
 ```
+
+## Preview
+
+Login-free tab:
+
+| Start | Token received | Workouts |
+| --- | --- | --- |
+| ![Start](screenshots/preview_01.png) | ![Token received](screenshots/preview_02.png) | ![Workouts](screenshots/preview_03.png) |
+
+Token values in the screenshots are replaced with examples.
 
 The full walkthrough, from the console setup to production notes, is in
 **[docs/DEVELOPMENT_GUIDE.md](docs/DEVELOPMENT_GUIDE.md)**.
@@ -27,23 +38,28 @@ The full walkthrough, from the console setup to production notes, is in
 | Wear Engine | List the paired watches and pick one | `managers/DeviceManager.kt` |
 | Wear Engine | Switch between a lite and a smart watch app (top right) | `managers/WatchType.kt` |
 | Wear Engine | Ping the watch app, send and receive messages, send a test file | `managers/P2pManager.kt` |
-| Health Kit | Authorize with Web OAuth or the login-free SDK | `healthkit/auth/` |
-| Health Kit | Read the workouts of the last 7 days to 1 year | `healthkit/api/ActivityRecordsApi.kt` |
-| Health Kit | Turn on workout push notifications | `push/WorkoutSubscriptions.kt` |
-| Health Kit | Delete the app's data and cancel the authorization | `healthkit/api/DataDeletionApi.kt` |
+| Login-free | Start the login-free authorization in Huawei Health | `healthkit/auth/LoginFreeAuthorizer.kt` |
+| Login-free | Exchange the code, show `code`, `state`, `access_token`, `refresh_token`, `expires_in` | `healthkit/HealthKitClient.kt` |
+| Login-free | Refresh the access token | `healthkit/token/HealthKitTokenClient.kt` |
+| Login-free | Read the workouts of the last 7 days to 1 year | `healthkit/api/ActivityRecordsApi.kt` |
+| Login-free | Turn on workout push notifications | `push/WorkoutSubscriptions.kt` |
+| Login-free | Delete the app's data and cancel the authorization | `healthkit/api/DataDeletionApi.kt` |
 | Backend | Receive Huawei's subscription callback and send the push | `backend/` |
+
+On the login-free tab, long press a value to copy it. The trash button deletes the stored
+tokens and starts over.
 
 ## Quick start
 
-1. Register your app on HUAWEI Developers and apply for Wear Engine and Health Service Kit.
-   See [Console setup](docs/DEVELOPMENT_GUIDE.md#2-console-setup).
+1. Register your app on HUAWEI Developers, apply for Wear Engine, Health Service Kit and the
+   login-free authorization. See [Console setup](docs/DEVELOPMENT_GUIDE.md#2-console-setup).
 2. Copy `local.properties.example` to `local.properties` and fill in your values.
 3. Copy `keystore.properties.example` to `keystore.properties` and point it at the keystore
-   whose SHA-256 fingerprint you registered. Wear Engine rejects the debug key.
+   whose SHA-256 fingerprint you registered. Wear Engine and the login-free SDK check it.
 4. For push: add your own `app/agconnect-services.json` (Push Kit) and, for phones with
    Google services, `app/google-services.json` (Firebase).
 5. Open the project in Android Studio and run it on a real phone that has the Huawei Health
-   app, paired with a Huawei watch.
+   app installed and signed in, paired with a Huawei watch for Wear Engine.
 6. For workout notifications, run the backend: see [backend/README.md](backend/README.md).
 
 No ID, secret or key is in this repository. `local.properties`, `keystore.properties`, the

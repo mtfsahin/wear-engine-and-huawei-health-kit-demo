@@ -40,6 +40,10 @@ class HealthKitClient(
 
     private var pendingState: String? = null
 
+    // Last redirect values, kept in memory for display only
+    private var lastCode: String? = null
+    private var lastState: String? = null
+
     var authMethod: HealthKitAuthMethod = methodStore.method
         private set
 
@@ -74,6 +78,8 @@ class HealthKitClient(
         val code = AuthorizationRedirect.parseCode(uri, pendingState)
             .getOrElse { return Result.failure(it) }
         pendingState = null
+        lastCode = code
+        lastState = uri.getQueryParameter("state")
 
         return tokenClient.exchangeCode(code, authorizer.tokenRedirectUri)
             .mapCatching { tokens ->
@@ -210,6 +216,19 @@ class HealthKitClient(
         }
     }
 
+    fun tokenItems(): List<Pair<String, String>> {
+        if (!tokenStore.hasTokens) return emptyList()
+        val expiresIn = ((tokenStore.expiresAtMillis - System.currentTimeMillis()) / 1000)
+            .coerceAtLeast(0L)
+        return listOf(
+            "code" to lastCode.orEmpty(),
+            "state" to lastState.orEmpty(),
+            "access_token" to tokenStore.accessToken.orEmpty(),
+            "refresh_token" to tokenStore.refreshToken.orEmpty(),
+            "expires_in" to expiresIn.toString(),
+        )
+    }
+
     suspend fun accessToken(): Result<String> {
         if (tokenStore.hasValidAccessToken()) {
             return Result.success(tokenStore.accessToken.orEmpty())
@@ -217,7 +236,7 @@ class HealthKitClient(
         return refreshAccessToken()
     }
 
-    private suspend fun refreshAccessToken(): Result<String> {
+    suspend fun refreshAccessToken(): Result<String> {
         val refreshToken = tokenStore.refreshToken
             ?: return Result.failure(IllegalStateException("Connect a Huawei Health account first."))
 

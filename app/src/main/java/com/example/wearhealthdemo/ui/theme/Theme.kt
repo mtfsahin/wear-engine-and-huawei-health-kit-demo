@@ -1,45 +1,33 @@
 package com.example.wearhealthdemo.ui.theme
 
-import android.os.Build
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
-)
-
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
+private val LoginFreeColors = darkColorScheme(
+    primary = Ink,
+    onPrimary = Surface0,
+    secondary = Brand,
+    secondaryContainer = LineStrong,
+    onSecondaryContainer = Ink,
+    background = Surface0,
+    onBackground = Ink,
+    surface = Surface0,
+    onSurface = Ink,
+    surfaceContainer = Surface1,
+    surfaceContainerHigh = Surface1,
+    surfaceContainerHighest = Surface1,
+    surfaceVariant = Surface1,
+    onSurfaceVariant = Ink2,
+    outline = LineStrong,
+    outlineVariant = Line,
+    error = ErrorRed,
 )
 
 @Composable
-fun WearEngineAndroidLiteFileMessageSenderTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
-    content: @Composable () -> Unit
-) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
-
+fun LoginFreeTheme(content: @Composable () -> Unit) {
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = LoginFreeColors,
         typography = Typography,
         content = content
     )

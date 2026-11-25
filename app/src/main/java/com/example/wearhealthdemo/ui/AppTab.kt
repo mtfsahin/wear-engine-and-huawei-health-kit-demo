@@ -12,8 +12,8 @@ enum class AppTab(val label: String, val title: String, val icon: ImageVector) {
         icon = Icons.AutoMirrored.Filled.Send,
     ),
     HEALTH_KIT(
-        label = "Health Kit",
-        title = "Health Kit Cloud: workouts",
+        label = "Login-free",
+        title = "Health Kit: login-free",
         icon = Icons.Default.FavoriteBorder,
     ),
 }

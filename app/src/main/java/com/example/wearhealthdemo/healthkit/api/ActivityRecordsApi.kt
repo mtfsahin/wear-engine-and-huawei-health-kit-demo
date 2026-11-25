@@ -1,10 +1,8 @@
 package com.example.wearhealthdemo.healthkit.api
 
 import android.net.Uri
-import android.util.Log
 import com.example.wearhealthdemo.data.models.WorkoutRecord
 import com.example.wearhealthdemo.healthkit.HealthKitConfig
-import com.example.wearhealthdemo.healthkit.net.HealthKitHttpException
 import com.example.wearhealthdemo.healthkit.net.HttpJson
 import com.example.wearhealthdemo.healthkit.net.requireSuccess
 import org.json.JSONArray
@@ -27,37 +25,8 @@ class ActivityRecordsApi(private val siteStore: ApiSiteStore? = null) {
         activityTypes: List<Int> = emptyList(),
         sourceTypes: List<Int> = HealthKitConfig.ALL_SOURCE_TYPES,
     ): Result<WorkoutQueryResult> = runCatching {
-        val firstHost = siteStore?.host ?: HealthKitConfig.defaultApiHost
-
-        try {
-            return@runCatching readFrom(
-                firstHost, accessToken, startTimeMillis, endTimeMillis, activityTypes, sourceTypes
-            )
-        } catch (e: HealthKitHttpException) {
-            if (!e.isSiteCross) throw e
-            siteStore?.clear()
-
-            val redirect = e.redirectHost
-            if (redirect != null && !redirect.equals(firstHost, ignoreCase = true)) {
-                Log.i(TAG, "Site cross from $firstHost, following Location to $redirect")
-                return@runCatching readFrom(
-                    redirect, accessToken, startTimeMillis, endTimeMillis, activityTypes,
-                    sourceTypes,
-                )
-            }
-
-            for (host in HealthKitConfig.FALLBACK_API_HOSTS) {
-                if (host.equals(firstHost, ignoreCase = true)) continue
-                try {
-                    return@runCatching readFrom(
-                        host, accessToken, startTimeMillis, endTimeMillis, activityTypes,
-                        sourceTypes,
-                    )
-                } catch (retry: HealthKitHttpException) {
-                    if (!retry.isSiteCross) throw retry
-                }
-            }
-            throw e
+        onUserSite(siteStore) { host ->
+            readFrom(host, accessToken, startTimeMillis, endTimeMillis, activityTypes, sourceTypes)
         }
     }
 
@@ -163,6 +132,5 @@ class ActivityRecordsApi(private val siteStore: ApiSiteStore? = null) {
     private companion object {
         const val MAX_PAGES = 5
         val VALUE_FIELDS = listOf("floatValue", "integerValue", "longValue", "stringValue")
-        const val TAG = "ActivityRecordsApi"
     }
 }

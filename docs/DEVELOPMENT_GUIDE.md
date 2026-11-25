@@ -29,7 +29,12 @@ kits, and you can build one without the other.
 | Path | Phone app, Huawei Health app, watch, over Bluetooth | Watch, Huawei Health app, Huawei cloud, your app or server, over REST |
 | Needs your own watch app | Yes | No |
 | When | Live, while both apps run | Within minutes after a workout syncs |
-| In this demo | Wear Engine tab | Health Kit tab and `backend/` |
+| In this demo | Wear Engine tab | Login-free tab and `backend/` |
+
+The login-free tab follows the iOS and Flutter login-free samples: a **Last result** card,
+the values that came back (`code`, `state`, `access_token`, `refresh_token`, `expires_in`),
+a **Start login-free** button and a **Refresh token** button. Long press a value to copy it;
+the trash button deletes the stored tokens and starts over.
 
 The Huawei Health app on the phone is in the middle of both paths. Your phone app never
 connects to the watch on its own.
@@ -139,7 +144,8 @@ what a CI job would use.
 
 | Key | Meaning | Environment variable |
 | --- | --- | --- |
-| `wearengine.appId` | App ID, also written into the manifest as `com.huawei.hms.client.appid` | `WEAR_ENGINE_APP_ID` |
+| `app.applicationId` | Package name registered in AppGallery Connect; empty keeps `com.example.wearhealthdemo` | `APP_APPLICATION_ID` |
+| `wearengine.appId` | App ID of this Android app, also written into the manifest as `com.huawei.hms.client.appid` | `WEAR_ENGINE_APP_ID` |
 | `wearengine.lite.peerPackage` | Package name of your lite watch app | `WEAR_LITE_PEER_PACKAGE` |
 | `wearengine.lite.peerFingerprint` | Fingerprint of your lite watch app | `WEAR_LITE_PEER_FINGERPRINT` |
 | `wearengine.smart.peerPackage` | Bundle name of your smart watch app | `WEAR_SMART_PEER_PACKAGE` |
@@ -151,7 +157,7 @@ what a CI job would use.
 | `healthkit.schemeSecret` | Method 2 Scheme Secret | `HEALTH_KIT_SCHEME_SECRET` |
 | `healthkit.loginFreeAppId` | Method 2 App ID if it differs from `clientId` | `HEALTH_KIT_LOGIN_FREE_APP_ID` |
 | `healthkit.apiHost` | Pin a regional Health Kit host, or leave empty | `HEALTH_KIT_API_HOST` |
-| `healthkit.authMethod` | `WEB_OAUTH` or `LOGIN_FREE_SDK` at start | `HEALTH_KIT_AUTH_METHOD` |
+| `healthkit.authMethod` | `LOGIN_FREE_SDK`. The login-free tab only offers this method | `HEALTH_KIT_AUTH_METHOD` |
 | `healthkit.historyWindow` | `NONE`, `WEEK`, `MONTH` or `YEAR` | `HEALTH_KIT_HISTORY_WINDOW` |
 | `backend.baseUrl` | Your backend, for push notifications | `BACKEND_BASE_URL` |
 
@@ -160,7 +166,7 @@ The keys are case sensitive. The build prints a warning for any unknown `healthk
 
 ### 3.2 Signing
 
-Wear Engine rejects an APK signed with the Android debug key. Copy
+Wear Engine and the login-free SDK check the signing certificate's SHA-256. Copy
 `keystore.properties.example` to `keystore.properties` and point it at the keystore whose
 SHA-256 fingerprint you registered. Both debug and release builds are then signed with it.
 
@@ -299,7 +305,7 @@ methods differ only in step 1.
 | 1 | Get an authorization code. The user signs in if needed and allows the app. | `auth/WebOAuthAuthorizer.kt` or `auth/LoginFreeAuthorizer.kt` |
 | 2 | Change the code into an access token and a refresh token | `token/HealthKitTokenClient.kt` |
 | 3 | Read the workouts with the access token | `api/ActivityRecordsApi.kt` |
-| 4 | Refresh the access token after 1 hour | `token/HealthKitTokenClient.kt` |
+| 4 | Refresh the access token after 1 hour, or with the **Refresh token** button | `token/HealthKitTokenClient.kt` |
 
 `HealthKitClient.kt` is the single entry point; the view model only talks to it.
 
@@ -321,9 +327,9 @@ When the redirect URI is not this app's own scheme (an `https` URL), Method 1 op
 in `WebAuthActivity` and catches the redirect there, because a Custom Tab cannot hand an
 arbitrary web URL back to the app.
 
-Method 2 has two solutions, and the card lets you switch between them while testing:
-solution 1 lets the SDK pick the screen, solution 2 always uses the Huawei Health app and
-also asks the user to turn on cloud sync.
+The login-free tab only offers Method 2. `LoginFreeAuthorizer` calls
+`requestAuthorizationWithPrivacyIntent`, which always uses the Huawei Health app and also
+asks the user to turn on cloud sync. The Method 1 code is still in `auth/` for reference.
 
 ### 5.2 The Health Kit switch
 
@@ -347,9 +353,12 @@ Authorization: Bearer <access token>
   is far in the past.
 - Results come in pages; `ActivityRecordsApi` follows the cursor.
 - **Regional sites.** A token only works on the site its HUAWEI ID belongs to. Another site
-  answers 403 with code 121001 ("site cross"). A European account, for example, lives on
-  `health-api.cloud.huawei.eu`. `ActivityRecordsApi` tries the known hosts, remembers the
-  one that answers (`ApiSiteStore.kt`), and `healthkit.apiHost` pins it if you know it.
+  answers 403 with code 121001 ("site cross") and puts the right address in the `Location`
+  response header, for example `https://health-api.cloud.huawei.eu/healthkit/v2/...`. The
+  app sends the request again to that host once, and only to that host, as the Health Kit
+  developer agreement asks (`api/SiteCross.kt`). It remembers the host (`ApiSiteStore.kt`);
+  `healthkit.apiHost` sets the first host to try. The backend does the same per call
+  (`backend/src/health-kit.js`), since its users can be on different sites.
 - `WorkoutType.kt` turns the `activityType` number into a name.
 
 ---
@@ -407,7 +416,7 @@ Node.js 20.6 or later is needed for `--env-file`. To deploy it, see
 
 | Button | What it does | Code |
 | --- | --- | --- |
-| Disconnect | Deletes the stored tokens on the phone. The Huawei authorization stays. | `HealthKitClient.signOut()` |
+| Trash (start over) | Deletes the stored tokens on the phone. The Huawei authorization stays. | `HealthKitClient.signOut()` |
 | Delete data | Deletes the activity records this app wrote, then cancels the authorization | `api/DataDeletionApi.kt` |
 
 Cancelling the authorization is one call. It cancels all scopes the user granted to the
@@ -437,7 +446,8 @@ your watch app.
 | Ping | 202 when the watch app is running |
 | Send Message | 207, the watch app shows the text |
 | Watch sends a message | It appears under Received Messages |
-| Health Kit, Connect | Huawei's permission screen, then the workout list |
+| Start login-free | Huawei Health's permission screen, then **Token received** with the five values |
+| Refresh token | A new `access_token` and `expires_in` |
 | Record a workout on the watch | A push notification within minutes, if the backend runs |
 | Delete data | The list empties and the authorization is cancelled |
 
@@ -475,7 +485,7 @@ your watch app.
 | Send result 206 | Package name or fingerprint does not match on one side, or the watch app has no receiver. |
 | `invalid redirect_uri` (1101, 20022) | `healthkit.redirectUri` is not exactly the registered value. |
 | `redirect_uri not registered` (1101, 20023) in Huawei Health | Add Huawei's fixed callback URL to the app (section 2.4). |
-| 403 with code 121001 | Wrong regional site. Leave `healthkit.apiHost` empty or set the right host. |
+| 403 with code 121001 | Wrong regional site. The app follows the `Location` header; if the response has none, check the token and `healthkit.apiHost`. |
 | 403 "The query time is out of range" | The window starts before the authorization. Use a shorter window or a history scope. |
 | Empty workout list | The Health Kit switch in Huawei Health is off (section 5.2). |
 | 1203 on token refresh | The refresh token expired or was revoked. Authorize again. |
